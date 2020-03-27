@@ -1,0 +1,17 @@
+INTEGER x, squ
+
+
+FUNCTION square
+{
+   squ = x * x
+}
+
+{
+   x = 1
+   WHILE (x <= 10) DO
+   {
+      FUNC square
+      output squ
+      x = x + 1
+   }
+}.
