@@ -13,15 +13,15 @@ consts
    ;
 
 vars
-   : 'INTEGER' ident (',' ident)*
+   : ('INTEGER'|'FLOAT') ident (',' ident)*
    ;
 
 procedure
-   : 'FUNCTION' ident  block
+   : 'FUNCTION' ident ident? (',' ident)* block
    ;
 
 statement
-   : (assignstmt | callstmt | writestmt | qstmt | bangstmt | beginstmt | ifstmt | whilestmt )
+   : (assignstmt | callstmt | writestmt | bangstmt | beginstmt | ifstmt | whilestmt | breakstmt )
    ;
 
 assignstmt
@@ -29,15 +29,15 @@ assignstmt
    ;
 
 callstmt
-   : 'FUNC' ident
+   : 'FUNC' ident ident? (',' ident)*
    ;
+
+breakstmt
+    : 'BREAK'
+    ;
 
 writestmt
    : 'WRITE' ident
-   ;
-
-qstmt
-   : '?' ident
    ;
 
 bangstmt
@@ -72,6 +72,7 @@ term
 factor
    : ident
    | number
+   | floatnumber
    | '(' expression ')'
    ;
 
@@ -80,9 +81,13 @@ ident
    ;
 
 number
-   : NUMBER
+   : '-'? NUMBER
    ;
 
+
+floatnumber
+   : '-'? NUMBER','NUMBER
+   ;
 
 
 STRING
@@ -91,8 +96,8 @@ STRING
 
 
 NUMBER
-   : [0-9] +
-   ;
+       : [0-9] +
+       ;
 
 
 WS
