@@ -1,17 +1,27 @@
-INTEGER x, squ
+CONST zxc = 22;
+CONST ddd = 555;
+CONST ff = 225.43;
 
+VAR x = 333;
+VAR squ = 5;
 
-FUNCTION square
+PROCEDURE square;
 {
-   squ = x * x
-}
+
+   squ= x * x
+};
+
+PROCEDURE dfgg;
+{
+   fff= x * x
+};
 
 {
-   x = 1
-   WHILE (x <= 10) DO
+   x = 0;
+   WHILE ( x <= 10.4  )  DO
    {
-      FUNC square
-      output squ
+      CALL square;
+      output (x);
       x = x + 1
    }
-}.
+}@

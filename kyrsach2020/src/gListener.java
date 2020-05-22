@@ -1,4 +1,4 @@
-// Generated from C:/Users/User/IdeaProjects/eee\g.g4 by ANTLR 4.8
+// Generated from C:/Users/User/IdeaProjects/kyrsach2020\g.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -87,35 +87,15 @@ public interface gListener extends ParseTreeListener {
 	 */
 	void exitCallstmt(gParser.CallstmtContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link gParser#writestmt}.
+	 * Enter a parse tree produced by {@link gParser#printmess}.
 	 * @param ctx the parse tree
 	 */
-	void enterWritestmt(gParser.WritestmtContext ctx);
+	void enterPrintmess(gParser.PrintmessContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link gParser#writestmt}.
+	 * Exit a parse tree produced by {@link gParser#printmess}.
 	 * @param ctx the parse tree
 	 */
-	void exitWritestmt(gParser.WritestmtContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link gParser#qstmt}.
-	 * @param ctx the parse tree
-	 */
-	void enterQstmt(gParser.QstmtContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link gParser#qstmt}.
-	 * @param ctx the parse tree
-	 */
-	void exitQstmt(gParser.QstmtContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link gParser#bangstmt}.
-	 * @param ctx the parse tree
-	 */
-	void enterBangstmt(gParser.BangstmtContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link gParser#bangstmt}.
-	 * @param ctx the parse tree
-	 */
-	void exitBangstmt(gParser.BangstmtContext ctx);
+	void exitPrintmess(gParser.PrintmessContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link gParser#beginstmt}.
 	 * @param ctx the parse tree
@@ -157,6 +137,26 @@ public interface gListener extends ParseTreeListener {
 	 */
 	void exitCondition(gParser.ConditionContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link gParser#breakstmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterBreakstmt(gParser.BreakstmtContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link gParser#breakstmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitBreakstmt(gParser.BreakstmtContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link gParser#continuestmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterContinuestmt(gParser.ContinuestmtContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link gParser#continuestmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitContinuestmt(gParser.ContinuestmtContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link gParser#expression}.
 	 * @param ctx the parse tree
 	 */
@@ -196,6 +196,16 @@ public interface gListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitIdent(gParser.IdentContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link gParser#floatnumber}.
+	 * @param ctx the parse tree
+	 */
+	void enterFloatnumber(gParser.FloatnumberContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link gParser#floatnumber}.
+	 * @param ctx the parse tree
+	 */
+	void exitFloatnumber(gParser.FloatnumberContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link gParser#number}.
 	 * @param ctx the parse tree

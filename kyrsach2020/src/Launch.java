@@ -21,8 +21,6 @@ public class Launch {
             MyVisitor visitor = new MyVisitor();
             visitor.visit(tree);
 
-
-
         }catch(IOException e){
             e.printStackTrace();
         }

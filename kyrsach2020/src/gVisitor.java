@@ -1,4 +1,4 @@
-// Generated from C:/Users/User/IdeaProjects/eee\g.g4 by ANTLR 4.8
+// Generated from C:/Users/User/IdeaProjects/kyrsach2020\g.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -58,23 +58,11 @@ public interface gVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCallstmt(gParser.CallstmtContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link gParser#writestmt}.
+	 * Visit a parse tree produced by {@link gParser#printmess}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitWritestmt(gParser.WritestmtContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link gParser#qstmt}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitQstmt(gParser.QstmtContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link gParser#bangstmt}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBangstmt(gParser.BangstmtContext ctx);
+	T visitPrintmess(gParser.PrintmessContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link gParser#beginstmt}.
 	 * @param ctx the parse tree
@@ -100,6 +88,18 @@ public interface gVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCondition(gParser.ConditionContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link gParser#breakstmt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBreakstmt(gParser.BreakstmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link gParser#continuestmt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitContinuestmt(gParser.ContinuestmtContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link gParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -123,6 +123,12 @@ public interface gVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitIdent(gParser.IdentContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link gParser#floatnumber}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFloatnumber(gParser.FloatnumberContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link gParser#number}.
 	 * @param ctx the parse tree

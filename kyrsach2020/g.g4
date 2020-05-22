@@ -1,65 +1,65 @@
 grammar g;
 
 go
-   : block '.'
+   : block '@'
    ;
 
 block
-   : consts? vars? procedure* statement
+   : consts* vars* procedure* statement
    ;
 
 consts
-   : 'CONSTANT' ident '=' number (',' ident '=' number)*
+   : 'CONST' ident '=' (number|floatnumber) ';'
    ;
 
 vars
-   : ('INTEGER'|'FLOAT') ident (',' ident)*
+   : 'VAR' ident '=' (number|floatnumber)';'
    ;
 
 procedure
-   : 'FUNCTION' ident ident? (',' ident)* block
+   : 'PROCEDURE' ident ';' block ';'
    ;
 
 statement
-   : (assignstmt | callstmt | writestmt | bangstmt | beginstmt | ifstmt | whilestmt | breakstmt )
+   : (assignstmt | callstmt | printmess | breakstmt | continuestmt | beginstmt | ifstmt | whilestmt)+
    ;
 
 assignstmt
-   : ident '=' expression
+   : ident '=' (expression)
    ;
 
 callstmt
-   : 'FUNC' ident ident? (',' ident)*
+   : 'CALL' ident
+   ;
+
+printmess
+   : 'output' '('(expression | STRINGLITERAL) ')'
+   ;
+
+beginstmt
+   : '{' statement (';' statement)* '}'
+   ;
+
+ifstmt
+   : 'IF' condition 'THEN' statement
+   ;
+
+whilestmt
+   : 'WHILE' '(' condition ')' 'DO' statement
+   ;
+
+condition
+   :  (('(')? expression ( '==' |'=' | '<' | '!=' | '<=' | '>' | '>=') expression)
+      (('and' | 'or')  expression ( '==' |'=' | '<' | '!=' | '<=' | '>' | '>=') expression)*
    ;
 
 breakstmt
     : 'BREAK'
     ;
 
-writestmt
-   : 'WRITE' ident
-   ;
-
-bangstmt
-   : 'output' expression
-   ;
-
-beginstmt
-    : '{' block (block)* '}'
+continuestmt
+    : 'CONTINUE'
     ;
-
-ifstmt
-   : 'IF' '('condition')' 'THEN' statement
-   ;
-
-whilestmt
-   : 'WHILE' '('condition')' 'DO' statement
-   ;
-
-condition
-   : 'ODD' expression
-   | expression ('==' | '#' | '<' | '<=' | '>' | '>=') expression
-   ;
 
 expression
    : ('+' | '-')? term (('+' | '-') term)*
@@ -71,8 +71,8 @@ term
 
 factor
    : ident
-   | number
    | floatnumber
+   | number
    | '(' expression ')'
    ;
 
@@ -80,15 +80,20 @@ ident
    : STRING
    ;
 
-number
-   : '-'? NUMBER
-   ;
-
-
 floatnumber
-   : '-'? NUMBER','NUMBER
+    : number '.' number
+    ;
+
+number
+   : NUMBER
    ;
 
+
+
+
+STRINGLITERAL
+   : '"' ~["\r]* '"'
+   ;
 
 STRING
    : [a-zA-Z] [a-zA-Z]*
@@ -96,8 +101,9 @@ STRING
 
 
 NUMBER
-       : [0-9] +
-       ;
+   : [0-9] +
+   ;
+
 
 
 WS
@@ -105,9 +111,9 @@ WS
    ;
 
 BlockComment
-    : '/*' .*? '*/' -> skip
-    ;
+   : '/*' .*? '*/' -> skip
+   ;
 
 OdrinaryComment
-    : '//' .*? '\n' -> skip
-    ;
+   : '//' .*? '\n' -> skip
+   ;
