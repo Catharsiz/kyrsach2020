@@ -1,7 +1,7 @@
 public class Value {
 
     private enum Type {
-        INTEGER, DOUBLE, BOOLEAN, STRING
+        INTEGER, FLOAT, BOOLEAN, STRING
     }
 
 
@@ -15,8 +15,8 @@ public class Value {
         switch (type) {
             case INTEGER:
                 return new Integer(value.toString());
-            case DOUBLE:
-                return new Double(value.toString());
+            case FLOAT:
+                return new Float(value.toString());
             case BOOLEAN:
                 return new Boolean(value.toString());
             case STRING:
@@ -53,12 +53,16 @@ public class Value {
         return this.const_;
     }
 
+    public void setIdent(String ident) {
+        this.ident = ident;
+    }
+
     private Type SetType(String type) {
         switch (type) {
             case "INTEGER":
                 return Type.INTEGER;
-            case "DOUBLE":
-                return Type.DOUBLE;
+            case "FLOAT":
+                return Type.FLOAT;
             case "BOOLEAN":
                 return Type.BOOLEAN;
             case "STRING":

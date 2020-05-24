@@ -127,15 +127,39 @@ public interface gListener extends ParseTreeListener {
 	 */
 	void exitWhilestmt(gParser.WhilestmtContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link gParser#condition}.
+	 * Enter a parse tree produced by {@link gParser#condlast}.
 	 * @param ctx the parse tree
 	 */
-	void enterCondition(gParser.ConditionContext ctx);
+	void enterCondlast(gParser.CondlastContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link gParser#condition}.
+	 * Exit a parse tree produced by {@link gParser#condlast}.
 	 * @param ctx the parse tree
 	 */
-	void exitCondition(gParser.ConditionContext ctx);
+	void exitCondlast(gParser.CondlastContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code cond_expr_all}
+	 * labeled alternative in {@link gParser#condition}.
+	 * @param ctx the parse tree
+	 */
+	void enterCond_expr_all(gParser.Cond_expr_allContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code cond_expr_all}
+	 * labeled alternative in {@link gParser#condition}.
+	 * @param ctx the parse tree
+	 */
+	void exitCond_expr_all(gParser.Cond_expr_allContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code cond_expr}
+	 * labeled alternative in {@link gParser#condition}.
+	 * @param ctx the parse tree
+	 */
+	void enterCond_expr(gParser.Cond_exprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code cond_expr}
+	 * labeled alternative in {@link gParser#condition}.
+	 * @param ctx the parse tree
+	 */
+	void exitCond_expr(gParser.Cond_exprContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link gParser#breakstmt}.
 	 * @param ctx the parse tree

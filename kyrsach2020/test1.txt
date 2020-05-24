@@ -1,7 +1,16 @@
-CONST squ = 5;
+VAR squ = 5;
 VAR x = -333;
- VAR sum = 0;
+VAR sum = 0;
+
+PROCEDURE square;
+{
+output(squ);
+   squ = 5.2 + 20;
+};
 
   {
+  CALL square;
+    output("ыфвфв");
    sum = 5+(4-3)*squ;
+   output(x);
   }@

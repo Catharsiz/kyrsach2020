@@ -33,7 +33,7 @@ callstmt
    ;
 
 printmess
-   : 'output' '(' (expression | literal) ')'
+   : 'output' '(' (expression | literal) ')' ';'
    ;
 
 beginstmt
@@ -41,17 +41,21 @@ beginstmt
    ;
 
 ifstmt
-   : 'IF' condition 'THEN' statement
+   : 'IF' condlast 'THEN' beginstmt
    ;
 
 whilestmt
-   : 'WHILE' '(' condition ')' 'DO' statement
+   : 'WHILE'  condlast  'DO' beginstmt
    ;
 
+condlast
+    : condition (check = ('or' | 'and') condition)*
+    ;
+
 condition
-   :  (('(')? expression ( '==' |'=' | '<' | '!=' | '<=' | '>' | '>=') expression)
-      (('and' | 'or')  expression ( '==' |'=' | '<' | '!=' | '<=' | '>' | '>=') expression)*
-   ;
+    : '(' expression (check = ('==' | '!=' | '<' | '<=' | '>' | '>=')) expression ')' # cond_expr_all
+    | expression # cond_expr
+    ;
 
 breakstmt
     : 'BREAK'

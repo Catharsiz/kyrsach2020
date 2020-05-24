@@ -12,7 +12,7 @@ import static org.antlr.v4.runtime.CharStreams.fromFileName;
 public class Launch {
     public static void main(String[] args){
         try{
-            String source = "test1.txt";
+            String source = "test.txt";
             CharStream cs = fromFileName(source);
             gLexer lexer = new gLexer(cs);
             CommonTokenStream token = new CommonTokenStream(lexer);

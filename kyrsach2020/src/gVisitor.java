@@ -82,11 +82,25 @@ public interface gVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitWhilestmt(gParser.WhilestmtContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link gParser#condition}.
+	 * Visit a parse tree produced by {@link gParser#condlast}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitCondition(gParser.ConditionContext ctx);
+	T visitCondlast(gParser.CondlastContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code cond_expr_all}
+	 * labeled alternative in {@link gParser#condition}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCond_expr_all(gParser.Cond_expr_allContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code cond_expr}
+	 * labeled alternative in {@link gParser#condition}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCond_expr(gParser.Cond_exprContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link gParser#breakstmt}.
 	 * @param ctx the parse tree

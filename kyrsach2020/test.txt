@@ -1,26 +1,19 @@
 CONST zxc = 22;
-CONST ddd = -555;
-CONST ff = 225.43;
+      CONST ddd = -555;
 
-VAR x = -333;
-VAR squ = 5;
+      VAR fff = 225.43;
+      VAR x = -33.1;
+      VAR squ = 1;
 
-PROCEDURE square;
-{
-   squ = -5 + 3 + 2
-};
 
-PROCEDURE dfgg;
-{
-   fff= x * x
-};
+      {
 
-{
-   x = 0;
-   WHILE ( x <= 10.4  )  DO
-   {
-      CALL square;
-      output (x);
-      x = x + 1
-   }
-}@
+      WHILE (3 > squ) and ( 5 > ddd) DO
+      {
+      x = 1000 + 100;
+      squ = squ+1;
+      }
+
+      fff = x + squ;
+      output(fff);
+      }@
