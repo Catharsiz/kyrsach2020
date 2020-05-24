@@ -1,14 +1,13 @@
 CONST zxc = 22;
-CONST ddd = 555;
+CONST ddd = -555;
 CONST ff = 225.43;
 
-VAR x = 333;
+VAR x = -333;
 VAR squ = 5;
 
 PROCEDURE square;
 {
-
-   squ= x * x
+   squ = -5 + 3 + 2
 };
 
 PROCEDURE dfgg;

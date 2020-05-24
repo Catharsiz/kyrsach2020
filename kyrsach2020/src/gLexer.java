@@ -45,7 +45,7 @@ public class gLexer extends Lexer {
 			null, "'@'", "'CONST'", "'='", "';'", "'VAR'", "'PROCEDURE'", "'CALL'", 
 			"'output'", "'('", "')'", "'{'", "'}'", "'IF'", "'THEN'", "'WHILE'", 
 			"'DO'", "'=='", "'<'", "'!='", "'<='", "'>'", "'>='", "'and'", "'or'", 
-			"'BREAK'", "'CONTINUE'", "'+'", "'-'", "'*'", "'/'", "'.'"
+			"'BREAK'", "'CONTINUE'", "'+'", "'-'", "'/'", "'*'", "'.'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
@@ -170,7 +170,7 @@ public class gLexer extends Lexer {
 		"\7E\2\2\u00aa\u00ab\7Q\2\2\u00ab\u00ac\7P\2\2\u00ac\u00ad\7V\2\2\u00ad"+
 		"\u00ae\7K\2\2\u00ae\u00af\7P\2\2\u00af\u00b0\7W\2\2\u00b0\u00b1\7G\2\2"+
 		"\u00b1\66\3\2\2\2\u00b2\u00b3\7-\2\2\u00b38\3\2\2\2\u00b4\u00b5\7/\2\2"+
-		"\u00b5:\3\2\2\2\u00b6\u00b7\7,\2\2\u00b7<\3\2\2\2\u00b8\u00b9\7\61\2\2"+
+		"\u00b5:\3\2\2\2\u00b6\u00b7\7\61\2\2\u00b7<\3\2\2\2\u00b8\u00b9\7,\2\2"+
 		"\u00b9>\3\2\2\2\u00ba\u00bb\7\60\2\2\u00bb@\3\2\2\2\u00bc\u00c0\7$\2\2"+
 		"\u00bd\u00bf\n\2\2\2\u00be\u00bd\3\2\2\2\u00bf\u00c2\3\2\2\2\u00c0\u00be"+
 		"\3\2\2\2\u00c0\u00c1\3\2\2\2\u00c1\u00c3\3\2\2\2\u00c2\u00c0\3\2\2\2\u00c3"+

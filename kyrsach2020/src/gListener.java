@@ -157,35 +157,101 @@ public interface gListener extends ParseTreeListener {
 	 */
 	void exitContinuestmt(gParser.ContinuestmtContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link gParser#expression}.
+	 * Enter a parse tree produced by the {@code expr_op}
+	 * labeled alternative in {@link gParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterExpression(gParser.ExpressionContext ctx);
+	void enterExpr_op(gParser.Expr_opContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link gParser#expression}.
+	 * Exit a parse tree produced by the {@code expr_op}
+	 * labeled alternative in {@link gParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitExpression(gParser.ExpressionContext ctx);
+	void exitExpr_op(gParser.Expr_opContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link gParser#term}.
+	 * Enter a parse tree produced by the {@code term_expr}
+	 * labeled alternative in {@link gParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterTerm(gParser.TermContext ctx);
+	void enterTerm_expr(gParser.Term_exprContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link gParser#term}.
+	 * Exit a parse tree produced by the {@code term_expr}
+	 * labeled alternative in {@link gParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitTerm(gParser.TermContext ctx);
+	void exitTerm_expr(gParser.Term_exprContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link gParser#factor}.
+	 * Enter a parse tree produced by the {@code term_op}
+	 * labeled alternative in {@link gParser#term}.
 	 * @param ctx the parse tree
 	 */
-	void enterFactor(gParser.FactorContext ctx);
+	void enterTerm_op(gParser.Term_opContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link gParser#factor}.
+	 * Exit a parse tree produced by the {@code term_op}
+	 * labeled alternative in {@link gParser#term}.
 	 * @param ctx the parse tree
 	 */
-	void exitFactor(gParser.FactorContext ctx);
+	void exitTerm_op(gParser.Term_opContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code factor_term}
+	 * labeled alternative in {@link gParser#term}.
+	 * @param ctx the parse tree
+	 */
+	void enterFactor_term(gParser.Factor_termContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code factor_term}
+	 * labeled alternative in {@link gParser#term}.
+	 * @param ctx the parse tree
+	 */
+	void exitFactor_term(gParser.Factor_termContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ident_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 */
+	void enterIdent_factor(gParser.Ident_factorContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ident_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 */
+	void exitIdent_factor(gParser.Ident_factorContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code float_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 */
+	void enterFloat_factor(gParser.Float_factorContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code float_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 */
+	void exitFloat_factor(gParser.Float_factorContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code integer_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 */
+	void enterInteger_factor(gParser.Integer_factorContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code integer_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 */
+	void exitInteger_factor(gParser.Integer_factorContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code expr_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 */
+	void enterExpr_factor(gParser.Expr_factorContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code expr_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 */
+	void exitExpr_factor(gParser.Expr_factorContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link gParser#ident}.
 	 * @param ctx the parse tree
@@ -216,4 +282,14 @@ public interface gListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitNumber(gParser.NumberContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link gParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void enterLiteral(gParser.LiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link gParser#literal}.
+	 * @param ctx the parse tree
+	 */
+	void exitLiteral(gParser.LiteralContext ctx);
 }

@@ -100,23 +100,61 @@ public interface gVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitContinuestmt(gParser.ContinuestmtContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link gParser#expression}.
+	 * Visit a parse tree produced by the {@code expr_op}
+	 * labeled alternative in {@link gParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitExpression(gParser.ExpressionContext ctx);
+	T visitExpr_op(gParser.Expr_opContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link gParser#term}.
+	 * Visit a parse tree produced by the {@code term_expr}
+	 * labeled alternative in {@link gParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitTerm(gParser.TermContext ctx);
+	T visitTerm_expr(gParser.Term_exprContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link gParser#factor}.
+	 * Visit a parse tree produced by the {@code term_op}
+	 * labeled alternative in {@link gParser#term}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFactor(gParser.FactorContext ctx);
+	T visitTerm_op(gParser.Term_opContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code factor_term}
+	 * labeled alternative in {@link gParser#term}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFactor_term(gParser.Factor_termContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ident_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitIdent_factor(gParser.Ident_factorContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code float_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFloat_factor(gParser.Float_factorContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code integer_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitInteger_factor(gParser.Integer_factorContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expr_factor}
+	 * labeled alternative in {@link gParser#factor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_factor(gParser.Expr_factorContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link gParser#ident}.
 	 * @param ctx the parse tree
@@ -135,4 +173,10 @@ public interface gVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitNumber(gParser.NumberContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link gParser#literal}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLiteral(gParser.LiteralContext ctx);
 }

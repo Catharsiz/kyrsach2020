@@ -1,0 +1,7 @@
+CONST squ = 5;
+VAR x = -333;
+ VAR sum = 0;
+
+  {
+   sum = 5+(4-3)*squ;
+  }@

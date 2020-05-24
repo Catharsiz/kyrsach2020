@@ -195,37 +195,97 @@ public class gBaseListener implements gListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExpression(gParser.ExpressionContext ctx) { }
+	@Override public void enterExpr_op(gParser.Expr_opContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitExpression(gParser.ExpressionContext ctx) { }
+	@Override public void exitExpr_op(gParser.Expr_opContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTerm(gParser.TermContext ctx) { }
+	@Override public void enterTerm_expr(gParser.Term_exprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitTerm(gParser.TermContext ctx) { }
+	@Override public void exitTerm_expr(gParser.Term_exprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFactor(gParser.FactorContext ctx) { }
+	@Override public void enterTerm_op(gParser.Term_opContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFactor(gParser.FactorContext ctx) { }
+	@Override public void exitTerm_op(gParser.Term_opContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFactor_term(gParser.Factor_termContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFactor_term(gParser.Factor_termContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterIdent_factor(gParser.Ident_factorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitIdent_factor(gParser.Ident_factorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFloat_factor(gParser.Float_factorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFloat_factor(gParser.Float_factorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterInteger_factor(gParser.Integer_factorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInteger_factor(gParser.Integer_factorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterExpr_factor(gParser.Expr_factorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpr_factor(gParser.Expr_factorContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -262,6 +322,18 @@ public class gBaseListener implements gListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitNumber(gParser.NumberContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLiteral(gParser.LiteralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLiteral(gParser.LiteralContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

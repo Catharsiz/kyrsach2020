@@ -25,7 +25,7 @@ statement
    ;
 
 assignstmt
-   : ident '=' (expression)
+   : ident '='  expression ';'
    ;
 
 callstmt
@@ -33,7 +33,7 @@ callstmt
    ;
 
 printmess
-   : 'output' '('(expression | STRINGLITERAL) ')'
+   : 'output' '(' (expression | literal) ')'
    ;
 
 beginstmt
@@ -62,32 +62,37 @@ continuestmt
     ;
 
 expression
-   : ('+' | '-')? term (('+' | '-') term)*
+   : expression op = ('+'| '-') term #expr_op
+   | term #term_expr
    ;
 
 term
-   : factor (('*' | '/') factor)*
+   : factor #factor_term
+   | term op = ('/' | '*') factor #term_op
    ;
 
 factor
-   : ident
-   | floatnumber
-   | number
-   | '(' expression ')'
-   ;
+    : ident # ident_factor
+    | floatnumber # float_factor
+    | number # integer_factor
+    | '(' expression ')' # expr_factor
+    ;
 
 ident
    : STRING
    ;
 
 floatnumber
-    : number '.' number
+    :  number '.' number
     ;
 
 number
-   : NUMBER
+   : '-'? NUMBER
    ;
 
+literal
+    : STRINGLITERAL
+    ;
 
 
 
