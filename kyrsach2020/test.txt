@@ -1,19 +1,7 @@
-CONST zxc = 22;
-      CONST ddd = -555;
-
-      VAR fff = 225.43;
-      VAR x = -33.1;
-      VAR squ = 1;
-
-
-      {
-
-      WHILE (3 > squ) and ( 5 > ddd) DO
-      {
-      x = 1000 + 100;
-      squ = squ+1;
-      }
-
-      fff = x + squ;
-      output(fff);
-      }@
+VAR c = 0;
+VAR z = 0;
+{
+z=6+3;
+c = 3+z+5+(z+2);
+output(c);
+}@

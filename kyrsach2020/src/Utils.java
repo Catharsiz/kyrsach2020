@@ -136,7 +136,8 @@ public class Utils {
         }
     }
 
-    public static String removeChatAt(String s, int pos) {
-        return s.substring(0, pos) + s.substring(pos + 1);
+    public static String removeChatAt(String s) {
+        String ss = s.substring(1,s.length()-1);
+        return ss;
     }
 }

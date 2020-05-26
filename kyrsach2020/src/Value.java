@@ -8,7 +8,6 @@ public class Value {
     private Type type;
     private Object value;
     private String ident;
-    private boolean const_;
 
 
     public Object getValue() {
@@ -26,7 +25,7 @@ public class Value {
     }
 
     public void setValue(Object value) {
-        if (!this.const_) this.value = value;
+         this.value = value;
     }
 
     public String getType() {
@@ -35,23 +34,18 @@ public class Value {
 
     public Value(String ident) {
         this.ident = ident;
-        this.const_ = false;
     }
 
     public Value(String ident, String type, Object value, Boolean const_) {
         this.ident = ident;
         this.type = SetType(type);
         this.value = value;
-        this.const_ = const_;
     }
 
     public String getIdent() {
         return this.ident;
     }
 
-    public Boolean isConst() {
-        return this.const_;
-    }
 
     public void setIdent(String ident) {
         this.ident = ident;

@@ -2,12 +2,7 @@ import org.antlr.v4.runtime.tree.*;
 import org.w3c.dom.ls.LSOutput;
 
 import java.sql.SQLOutput;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Stack;
-
-
+import java.util.*;
 
 
 public class MyVisitor extends gBaseVisitor<Object> {
@@ -16,6 +11,7 @@ public class MyVisitor extends gBaseVisitor<Object> {
     Stack <HashMap <String, Value>> Stack_var = new Stack<>();;
     HashMap<String, Value> tableforprint = new HashMap<>();
     HashMap<String, gParser.BlockContext> function = new HashMap<>();
+    private HashSet<String> globalNames = new HashSet<>();
 
     private Value getVariable(String varName) throws Exception {
         if (tableforprint.containsKey(varName))
@@ -33,15 +29,17 @@ public class MyVisitor extends gBaseVisitor<Object> {
         value.setIdent(variableName);
         if (tableforprint.containsKey(variableName)) {
             Value val = tableforprint.get(variableName);
-            if (val.isConst()) throw new Exception("You cannot change the value of a constant " + variableName);
-            else tableforprint.replace(variableName, value);
+
+                tableforprint.replace(variableName, value);
+
+                String str = "%" + (LLVMGenerator.reg-1) ;
+                LLVMGenerator.assign_i32(variableName, str,globalNames);
+
         }
         else
             for (HashMap<String, Value> cv: Stack_var) {
                 if (cv.containsKey(variableName)) {
-                    Value val = cv.get(variableName);
-                    if (val.isConst()) throw new Exception("You cannot change the value of a constant " + variableName);
-                    else cv.replace(variableName, value);
+                    cv.replace(variableName, value);
                 }
                 else throw  new Exception("Variable" + variableName + " is not identified");
             }
@@ -61,7 +59,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Object visitGo(gParser.GoContext ctx) { return visitChildren(ctx); }
+    @Override public Object visitGo(gParser.GoContext ctx) {
+        return visitChildren(ctx);
+    }
     /**
      * {@inheritDoc}
      *
@@ -79,35 +79,8 @@ public class MyVisitor extends gBaseVisitor<Object> {
             tableforprint = Stack_var.pop();
         } else
             tableforprint.clear();
+        LLVMGenerator.generate();
         return null;
-    }
-
-    @Override public Object visitConsts(gParser.ConstsContext ctx) {
-
-        String type;
-        Value value;
-
-        String name = ctx.ident().getText();
-
-        if (ctx.children.contains(ctx.number())){
-            Object num = ctx.number().getText();
-            type = "INTEGER";
-            value = new Value(name, type, num, true);
-            tableforprint.put(name,value);
-
-            System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue() + " , константа? " +  value.isConst());
-
-        }
-        else if (ctx.children.contains(ctx.floatnumber())){
-            Object floatnum = ctx.floatnumber().getText();
-            type = "FLOAT";
-            value = new Value(name, type, floatnum, true);
-            tableforprint.put(name,value);
-
-            System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue() + " , константа? " +  value.isConst());
-
-        }
-        return visitChildren(ctx);
     }
 
 
@@ -124,8 +97,10 @@ public class MyVisitor extends gBaseVisitor<Object> {
             value = new Value(name, type, num, false);
             tableforprint.put(name,value);
 
-            System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue() + " , константа? " +  value.isConst());
-
+            System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue());
+            globalNames.add(value.getIdent());
+            LLVMGenerator.declare_i32(value.getIdent(),true);
+            LLVMGenerator.assign_i32(value.getIdent(), value.getValue().toString(), globalNames);
         }
         else if (ctx.children.contains(ctx.floatnumber())){
             Object floatnum = ctx.floatnumber().getText();
@@ -133,7 +108,7 @@ public class MyVisitor extends gBaseVisitor<Object> {
             value = new Value(name, type, floatnum, false);
             tableforprint.put(name,value);
 
-            System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue() + " , константа? " +  value.isConst());
+            System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue());
 
         }
         return visitChildren(ctx);
@@ -185,10 +160,13 @@ public class MyVisitor extends gBaseVisitor<Object> {
         if(ctx.children.contains(ctx.expression())){
             name = ctx.expression().getText();
             System.out.println("output переменной " + tableforprint.get(name));
+            LLVMGenerator.printf_i32(name,globalNames);
         } else if (ctx.children.contains(ctx.literal()))
         {
-            name = ctx.literal().getText();
+            name = Utils.removeChatAt(ctx.literal().getText());
             System.out.println("output Строковой литерал: " + name);
+            System.out.println(name);
+            LLVMGenerator.printlit(name);
         }
         return visitChildren(ctx);
     }
@@ -232,15 +210,47 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
     @Override public Object visitIdent(gParser.IdentContext ctx) { return visitChildren(ctx); }
 
+
+    private static boolean isExpr(String s)  {
+            if (s.matches("[a-zA-Z]"))
+                return true;
+            else
+            return false;
+    }
+
     @Override public Object visitExpr_op(gParser.Expr_opContext ctx) {
         Value left = (Value) visit(ctx.expression());
+        System.out.println(ctx.expression().getText());
         Value right = (Value) visit(ctx.term());
+        System.out.println(ctx.term().getText());
         switch (ctx.op.getText()) {
             case "+":
                 try {
                     if (Utils.CheckType(left, right)) {
-                        System.out.println(Utils.Sum(left, right));
-                        return Utils.Sum(left, right);
+                       Object obj = Utils.Sum(left, right);
+
+
+                       String firstValue;
+
+                       if (isExpr(ctx.expression().getText())){
+                           LLVMGenerator.load_i32(ctx.expression().getText(), globalNames);
+                           firstValue = "%" + (LLVMGenerator.reg-1);
+                       } else{
+                           firstValue = left.getValue().toString();
+                       }
+
+
+                        String secondValue;
+
+                        if (isExpr(ctx.term().getText())){
+                            LLVMGenerator.load_i32(ctx.term().getText(), globalNames);
+                            secondValue = "%" + (LLVMGenerator.reg-1);
+                        } else{
+                            secondValue = right.getValue().toString();
+                        }
+
+                        LLVMGenerator.add_i32(firstValue,secondValue);
+                        return obj;
                     }
                 }
                 catch (Exception e) {
@@ -250,7 +260,7 @@ public class MyVisitor extends gBaseVisitor<Object> {
             case "-":
                 try {
                     if (Utils.CheckType(left, right)) {
-                        System.out.println(Utils.Sub(left, right));
+
                         return Utils.Sub(left, right);
                     }
                 }
@@ -279,7 +289,7 @@ public class MyVisitor extends gBaseVisitor<Object> {
             case "/":
                 try {
                     if (Utils.CheckType(left, right)) {
-                        System.out.println(Utils.Div(left, right));
+
                         return Utils.Div(left, right);
                     }
                 }
@@ -290,7 +300,7 @@ public class MyVisitor extends gBaseVisitor<Object> {
             case "*":
                 try {
                     if (Utils.CheckType(left, right)) {
-                        System.out.println(Utils.Mult(left, right));
+
                         return Utils.Mult(left, right);
                     }
                 }
@@ -333,14 +343,12 @@ public class MyVisitor extends gBaseVisitor<Object> {
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Object visitInteger_factor(gParser.Integer_factorContext ctx) {
-        System.out.println(ctx.number().getText());
         return new Value ("", "INTEGER", Integer.parseInt(ctx.number().getText()), false);
     }
 
 
 
     @Override public Object visitFloat_factor(gParser.Float_factorContext ctx) {
-        System.out.println((ctx.floatnumber().getText()));
         return new Value ("", "FLOAT", Float.parseFloat(ctx.floatnumber().getText()), false);
     }
 
@@ -365,9 +373,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
             Value right = (Value) visit(ctx.condition(1));
 
-            if (ctx.check.getText() == "or") {
+            if (ctx.check.getText().equals("or")) {
                 return new Value("", Utils.Bool, (Boolean.parseBoolean(left.getValue().toString()) || Boolean.parseBoolean(right.getValue().toString())), false);
-            } else if (ctx.check.getText() == "and") {
+            } else if (ctx.check.getText().equals("and")) {
                 return new Value("", Utils.Bool, (Boolean.parseBoolean(left.getValue().toString()) && Boolean.parseBoolean(right.getValue().toString())), false);
             }
             return visitChildren(ctx);
@@ -409,4 +417,3 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
 
 }
-

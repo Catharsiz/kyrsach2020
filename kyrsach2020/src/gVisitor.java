@@ -1,4 +1,4 @@
-// Generated from C:/Users/User/IdeaProjects/kyrsach2020\g.g4 by ANTLR 4.8
+// Generated from /home/egor/IdeaProjects/kyrsach2020/src/g.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
