@@ -36,7 +36,7 @@ public class Value {
         this.ident = ident;
     }
 
-    public Value(String ident, String type, Object value, Boolean const_) {
+    public Value(String ident, String type, Object value) {
         this.ident = ident;
         this.type = SetType(type);
         this.value = value;

@@ -34,11 +34,13 @@ class LLVMGenerator {
         return text;
     }
 
+    // functions
     static void function_start(String id) {
         main_text += buffer;
         main_reg = reg;
         buffer = "define void @" + id + "() nounwind {\n";
-        reg = 1;
+        buffer += "entry:\n";
+        reg = 0;
     }
 
     static void function_end() {
@@ -50,12 +52,28 @@ class LLVMGenerator {
         reg = main_reg;
     }
 
+    static void call(String id) {
+        buffer += "call void @" + id + "()\n";
+
+    }
+
     static void printlit(String text) {
         int str_len = text.length();
         String str_type = "[" + (str_len + 2) + " x i8]";
         header_text += "@str" + str_i + " = constant" + str_type + " c\"" + text + "\\0A\\00\"\n";
         buffer += "%" + reg + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ( " + str_type + ", " + str_type + "* @str" + str_i + ", i32 0, i32 0))\n";
         str_i++;
+        reg++;
+    }
+
+    static void printf_double(String id, HashSet<String> globalNames) {
+        if (globalNames.contains(id)) {
+            buffer += "%" + reg + " = load double, double* @" + id + "\n";
+        } else {
+            buffer += "%" + reg + " = load double, double* %" + id + "\n";
+        }
+        reg++;
+        buffer += "%" + reg + " = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @strpd, i32 0, i32 0), double %" + (reg - 1) + ")\n";
         reg++;
     }
 
@@ -70,11 +88,21 @@ class LLVMGenerator {
         reg++;
     }
 
+
+
     static void declare_i32(String id, boolean global) {
         if (global) {
             header_text += "@" + id + " = global i32 0\n";
         } else {
             buffer += "%" + id + " = alloca i32\n";
+        }
+    }
+
+    static void declare_double(String id, boolean global) {
+        if (global) {
+            header_text += "@" + id + " = global double 0.0\n";
+        } else {
+            buffer += "%" + id + " = alloca double\n";
         }
     }
 
@@ -86,10 +114,36 @@ class LLVMGenerator {
         }
     }
 
+
+    static void assign_double(String id, String value, HashSet<String> globalNames) {
+        if (globalNames.contains(id)) {
+            buffer += "store double " + value + ", double* @" + id + "\n";
+        } else {
+            buffer += "store double " + value + ", double* %" + id + "\n";
+        }
+    }
+
     static void add_i32(String val1, String val2) {
         buffer += "%" + reg + " = add i32 " + val1 + ", " + val2 + "\n";
         reg++;
     }
+
+
+    static void sub_i32(String val1, String val2) {
+        buffer += "%" + reg + " = sub i32 " + val1 + ", " + val2 + "\n";
+        reg++;
+    }
+
+    static void div_i32(String val1, String val2) {
+        buffer += "%" + reg + " = sdiv i32 " + val1 + ", " + val2 + "\n";
+        reg++;
+    }
+
+    static void mul_i32(String val1, String val2) {
+        buffer += "%" + reg + " = mul i32 " + val1 + ", " + val2 + "\n";
+        reg++;
+    }
+
 
     static void load_i32(String id, HashSet<String> globalNames) {
         if (globalNames != null && globalNames.contains(id)) {
@@ -100,7 +154,63 @@ class LLVMGenerator {
         reg++;
     }
 
+    static void add_double(String val1, String val2) {
+        buffer += "%" + reg + " = fadd double " + val1 + ", " + val2 + "\n";
+        reg++;
+    }
 
+    static void sub_double(String val1, String val2) {
+        buffer += "%" + reg + " = fsub double " + val1 + ", " + val2 + "\n";
+        reg++;
+    }
+
+    static void div_double(String val1, String val2) {
+        buffer += "%" + reg + " = fdiv double " + val1 + ", " + val2 + "\n";
+        reg++;
+    }
+
+    static void mul_double(String val1, String val2) {
+        buffer += "%" + reg + " = fmul double " + val1 + ", " + val2 + "\n";
+        reg++;
+    }
+
+    static void load_double(String id, HashSet<String> globalNames) {
+        if (globalNames.contains(id)) {
+            buffer += "%" + reg + " = load double, double* @" + id + "\n";
+        } else {
+            buffer += "%" + reg + " = load double, double* %" + id + "\n";
+        }
+        reg++;
+    }
+
+    // if
+    static void icmp2Expr() {
+        buffer += "%" + reg + " = icmp eq i32 %" + (reg - 1) + ", %" + (reg-2) + "\n";
+        reg++;
+    }
+
+    static void icmp1Expr(String value) {
+        buffer += "%" + reg + " = icmp eq i32 %" + (reg - 1) + ", "+ value + "\n";
+        reg++;
+    }
+
+    static void icmp0Expr(String value1, String value2) {
+        buffer += "%" + reg + " = icmp eq i32 " + value1 + ", "+ value2 + "\n";
+        reg++;
+    }
+
+    static void if_start() {
+        br++;
+        buffer += "br i1 %" + (reg - 1) + ", label %true" + br + ", label %false" + br + "\n";
+        buffer += "true" + br + ":\n";
+        br_stack.push(br);
+    }
+
+    static void if_end() {
+        int b = br_stack.pop();
+        buffer += "br label %false" + b + "\n";
+        buffer += "false" + b + ":\n";
+    }
 
 
 

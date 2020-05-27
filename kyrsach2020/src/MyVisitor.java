@@ -12,6 +12,7 @@ public class MyVisitor extends gBaseVisitor<Object> {
     HashMap<String, Value> tableforprint = new HashMap<>();
     HashMap<String, gParser.BlockContext> function = new HashMap<>();
     private HashSet<String> globalNames = new HashSet<>();
+    boolean isGenerate = false;
 
     private Value getVariable(String varName) throws Exception {
         if (tableforprint.containsKey(varName))
@@ -28,12 +29,20 @@ public class MyVisitor extends gBaseVisitor<Object> {
     private void setVariable(String variableName, Value value) throws Exception {
         value.setIdent(variableName);
         if (tableforprint.containsKey(variableName)) {
-            Value val = tableforprint.get(variableName);
 
                 tableforprint.replace(variableName, value);
 
-                String str = "%" + (LLVMGenerator.reg-1) ;
-                LLVMGenerator.assign_i32(variableName, str,globalNames);
+                Value val = getVariable(variableName);
+
+                if(val.getType().equals("INTEGER")){
+                        String str = "%" + (LLVMGenerator.reg-1) ;
+                        LLVMGenerator.assign_i32(variableName, str,globalNames);
+
+                } else
+                {
+                    String str = "%" + (LLVMGenerator.reg-1) ;
+                    LLVMGenerator.assign_double(variableName, str,globalNames);
+                }
 
         }
         else
@@ -47,7 +56,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
     private void callProcedure(String ident) throws Exception{
         if (function.containsKey(ident)) {
-            visit(function.get(ident));
+          //  visit(function.get(ident));
+            LLVMGenerator.call(ident);
+
         }
         else throw new Exception("Procedure" + ident + " is not identified");
     }
@@ -60,7 +71,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Object visitGo(gParser.GoContext ctx) {
-        return visitChildren(ctx);
+        visitChildren(ctx);
+        LLVMGenerator.generate();
+        return null;
     }
     /**
      * {@inheritDoc}
@@ -79,7 +92,11 @@ public class MyVisitor extends gBaseVisitor<Object> {
             tableforprint = Stack_var.pop();
         } else
             tableforprint.clear();
-        LLVMGenerator.generate();
+
+        if(!isGenerate){
+         //   LLVMGenerator.generate();
+            isGenerate=true;
+        }
         return null;
     }
 
@@ -94,7 +111,7 @@ public class MyVisitor extends gBaseVisitor<Object> {
         if (ctx.children.contains(ctx.number())){
             Object num = ctx.number().getText();
             type = "INTEGER";
-            value = new Value(name, type, num, false);
+            value = new Value(name, type, num);
             tableforprint.put(name,value);
 
             System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue());
@@ -105,10 +122,13 @@ public class MyVisitor extends gBaseVisitor<Object> {
         else if (ctx.children.contains(ctx.floatnumber())){
             Object floatnum = ctx.floatnumber().getText();
             type = "FLOAT";
-            value = new Value(name, type, floatnum, false);
+            value = new Value(name, type, floatnum);
             tableforprint.put(name,value);
 
             System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue());
+            globalNames.add(value.getIdent());
+            LLVMGenerator.declare_double(value.getIdent(),true);
+            LLVMGenerator.assign_double(value.getIdent(), value.getValue().toString(), globalNames);
 
         }
         return visitChildren(ctx);
@@ -119,6 +139,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
     @Override public Object visitProcedure(gParser.ProcedureContext ctx) {
         String ident = ctx.ident().getText();
         function.put(ident, ctx.block());
+        LLVMGenerator.function_start(ident);
+        visit(ctx.block());
+        LLVMGenerator.function_end();
         return null;
     }
 
@@ -160,12 +183,20 @@ public class MyVisitor extends gBaseVisitor<Object> {
         if(ctx.children.contains(ctx.expression())){
             name = ctx.expression().getText();
             System.out.println("output переменной " + tableforprint.get(name));
-            LLVMGenerator.printf_i32(name,globalNames);
+            try {
+                Value val = getVariable(name);
+
+                if(val.getType().equals("INTEGER"))
+                LLVMGenerator.printf_i32(name,globalNames);
+                else LLVMGenerator.printf_double(name,globalNames);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else if (ctx.children.contains(ctx.literal()))
         {
             name = Utils.removeChatAt(ctx.literal().getText());
             System.out.println("output Строковой литерал: " + name);
-            System.out.println(name);
             LLVMGenerator.printlit(name);
         }
         return visitChildren(ctx);
@@ -182,9 +213,13 @@ public class MyVisitor extends gBaseVisitor<Object> {
      */
     @Override public Object visitIfstmt(gParser.IfstmtContext ctx) {
         Value value = (Value) visit(ctx.condlast());
+        System.out.println(value.getValue()+ " from visitIfstmt");
+
+        LLVMGenerator.if_start();
         if (Boolean.parseBoolean(value.getValue().toString())){
             visit(ctx.beginstmt());
         }
+        LLVMGenerator.if_end();
         return null;
     }
 
@@ -220,55 +255,130 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
     @Override public Object visitExpr_op(gParser.Expr_opContext ctx) {
         Value left = (Value) visit(ctx.expression());
-        System.out.println(ctx.expression().getText());
         Value right = (Value) visit(ctx.term());
-        System.out.println(ctx.term().getText());
+
         switch (ctx.op.getText()) {
             case "+":
-                try {
+                    if(left.getType().equals("INTEGER")){
+
                     if (Utils.CheckType(left, right)) {
-                       Object obj = Utils.Sum(left, right);
+                        Object obj = Utils.Sum(left, right);
 
+                        String firstValue;
 
-                       String firstValue;
-
-                       if (isExpr(ctx.expression().getText())){
-                           LLVMGenerator.load_i32(ctx.expression().getText(), globalNames);
-                           firstValue = "%" + (LLVMGenerator.reg-1);
-                       } else{
-                           firstValue = left.getValue().toString();
-                       }
+                        if (isExpr(ctx.expression().getText())) {
+                            LLVMGenerator.load_i32(ctx.expression().getText(), globalNames);
+                            firstValue = "%" + (LLVMGenerator.reg - 1);
+                        } else {
+                            firstValue = left.getValue().toString();
+                        }
 
 
                         String secondValue;
 
-                        if (isExpr(ctx.term().getText())){
+                        if (isExpr(ctx.term().getText())) {
                             LLVMGenerator.load_i32(ctx.term().getText(), globalNames);
-                            secondValue = "%" + (LLVMGenerator.reg-1);
-                        } else{
+                            secondValue = "%" + (LLVMGenerator.reg - 1);
+                        } else {
                             secondValue = right.getValue().toString();
                         }
 
-                        LLVMGenerator.add_i32(firstValue,secondValue);
+
+                        LLVMGenerator.add_i32(firstValue, secondValue);
                         return obj;
                     }
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-                break;
-            case "-":
-                try {
-                    if (Utils.CheckType(left, right)) {
-
-                        return Utils.Sub(left, right);
                     }
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
+
+                    else {          // + float
+                        if (Utils.CheckType(left, right)) {
+                            Object obj = Utils.Sum(left, right);
+
+                            String firstValue;
+
+                            if (isExpr(ctx.expression().getText())) {
+                                LLVMGenerator.load_double(ctx.expression().getText(), globalNames);
+                                firstValue = "%" + (LLVMGenerator.reg - 1);
+                            } else {
+                                firstValue = left.getValue().toString();
+                            }
+
+
+                            String secondValue;
+
+                            if (isExpr(ctx.term().getText())) {
+                                LLVMGenerator.load_double(ctx.term().getText(), globalNames);
+                                secondValue = "%" + (LLVMGenerator.reg - 1);
+                            } else {
+                                secondValue = right.getValue().toString();
+                            }
+
+
+                            LLVMGenerator.add_double(firstValue, secondValue);
+                            return obj;
+                    }
+                    }
+
                 break;
 
+            case "-":
+
+                    if (left.getType().equals("INTEGER")) {
+
+                        if (Utils.CheckType(left, right)) {
+                            Object obj = Utils.Sub(left, right);
+
+                            String firstValue;
+
+                            if (isExpr(ctx.expression().getText())) {
+                                LLVMGenerator.load_i32(ctx.expression().getText(), globalNames);
+                                firstValue = "%" + (LLVMGenerator.reg - 1);
+                            } else {
+                                firstValue = left.getValue().toString();
+                            }
+
+
+                            String secondValue;
+
+                            if (isExpr(ctx.term().getText())) {
+                                LLVMGenerator.load_i32(ctx.term().getText(), globalNames);
+                                secondValue = "%" + (LLVMGenerator.reg - 1);
+                            } else {
+                                secondValue = right.getValue().toString();
+                            }
+
+                            LLVMGenerator.sub_i32(firstValue, secondValue);
+
+                            return obj;
+                        }
+                    }  else {          // - float
+                            if (Utils.CheckType(left, right)) {
+                                Object obj = Utils.Sub(left, right);
+
+                                String firstValue;
+
+                                if (isExpr(ctx.expression().getText())) {
+                                    LLVMGenerator.load_double(ctx.expression().getText(), globalNames);
+                                    firstValue = "%" + (LLVMGenerator.reg - 1);
+                                } else {
+                                    firstValue = left.getValue().toString();
+                                }
+
+
+                                String secondValue;
+
+                                if (isExpr(ctx.term().getText())) {
+                                    LLVMGenerator.load_double(ctx.term().getText(), globalNames);
+                                    secondValue = "%" + (LLVMGenerator.reg - 1);
+                                } else {
+                                    secondValue = right.getValue().toString();
+                                }
+
+
+                                LLVMGenerator.sub_double(firstValue, secondValue);
+                                return obj;
+                            }
+                        }
+                break;
         }
         return null;
     }
@@ -287,28 +397,123 @@ public class MyVisitor extends gBaseVisitor<Object> {
         Value right = (Value) visit(ctx.factor());
         switch (ctx.op.getText()) {
             case "/":
-                try {
+                if(left.getType().equals("INTEGER")) {
                     if (Utils.CheckType(left, right)) {
+                        Object obj = Utils.Div(left, right);
 
-                        return Utils.Div(left, right);
+
+                        String firstValue;
+
+                        if (isExpr(ctx.term().getText())) {
+                            LLVMGenerator.load_i32(ctx.term().getText(), globalNames);
+                            firstValue = "%" + (LLVMGenerator.reg - 1);
+                        } else {
+                            firstValue = left.getValue().toString();
+                        }
+
+
+                        String secondValue;
+
+                        if (isExpr(ctx.factor().getText())) {
+                            LLVMGenerator.load_i32(ctx.factor().getText(), globalNames);
+                            secondValue = "%" + (LLVMGenerator.reg - 1);
+                        } else {
+                            secondValue = right.getValue().toString();
+                        }
+
+                        LLVMGenerator.div_i32(firstValue, secondValue);
+
+                        return obj;
+                    }
+                }  else {          // деление float
+                    if (Utils.CheckType(left, right)) {
+                        Object obj = Utils.Div(left, right);
+
+                        String firstValue;
+
+                        if (isExpr(ctx.term().getText())) {
+                            LLVMGenerator.load_double(ctx.term().getText(), globalNames);
+                            firstValue = "%" + (LLVMGenerator.reg - 1);
+                        } else {
+                            firstValue = left.getValue().toString();
+                        }
+
+
+                        String secondValue;
+
+                        if (isExpr(ctx.factor().getText())) {
+                            LLVMGenerator.load_double(ctx.factor().getText(), globalNames);
+                            secondValue = "%" + (LLVMGenerator.reg - 1);
+                        } else {
+                            secondValue = right.getValue().toString();
+                        }
+
+
+                        LLVMGenerator.div_double(firstValue, secondValue);
+                        return obj;
                     }
                 }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
                 break;
+
+
             case "*":
-                try {
+                if(left.getType().equals("INTEGER")){
                     if (Utils.CheckType(left, right)) {
+                        Object obj = Utils.Mult(left, right);
 
-                        return Utils.Mult(left, right);
+                        String firstValue;
+
+                        if (isExpr(ctx.term().getText())) {
+                            LLVMGenerator.load_i32(ctx.term().getText(), globalNames);
+                            firstValue = "%" + (LLVMGenerator.reg - 1);
+                        } else {
+                            firstValue = left.getValue().toString();
+                        }
+
+
+                        String secondValue;
+
+                        if (isExpr(ctx.factor().getText())) {
+                            LLVMGenerator.load_i32(ctx.factor().getText(), globalNames);
+                            secondValue = "%" + (LLVMGenerator.reg - 1);
+                        } else {
+                            secondValue = right.getValue().toString();
+                        }
+
+                        LLVMGenerator.mul_i32(firstValue, secondValue);
+
+                        return obj;
                     }
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-                break;
+                    }  else {          // умножение float
+                        if (Utils.CheckType(left, right)) {
+                            Object obj = Utils.Mult(left, right);
 
+                            String firstValue;
+
+                            if (isExpr(ctx.term().getText())) {
+                                LLVMGenerator.load_double(ctx.term().getText(), globalNames);
+                                firstValue = "%" + (LLVMGenerator.reg - 1);
+                            } else {
+                                firstValue = left.getValue().toString();
+                            }
+
+
+                            String secondValue;
+
+                            if (isExpr(ctx.factor().getText())) {
+                                LLVMGenerator.load_double(ctx.factor().getText(), globalNames);
+                                secondValue = "%" + (LLVMGenerator.reg - 1);
+                            } else {
+                                secondValue = right.getValue().toString();
+                            }
+
+
+                            LLVMGenerator.mul_double(firstValue, secondValue);
+                            return obj;
+                        }
+                    }
+
+                break;
         }
         return null;
     }
@@ -343,13 +548,13 @@ public class MyVisitor extends gBaseVisitor<Object> {
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Object visitInteger_factor(gParser.Integer_factorContext ctx) {
-        return new Value ("", "INTEGER", Integer.parseInt(ctx.number().getText()), false);
+        return new Value ("", "INTEGER", Integer.parseInt(ctx.number().getText()));
     }
 
 
 
     @Override public Object visitFloat_factor(gParser.Float_factorContext ctx) {
-        return new Value ("", "FLOAT", Float.parseFloat(ctx.floatnumber().getText()), false);
+        return new Value ("", "FLOAT", Float.parseFloat(ctx.floatnumber().getText()));
     }
 
 
@@ -374,9 +579,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
             Value right = (Value) visit(ctx.condition(1));
 
             if (ctx.check.getText().equals("or")) {
-                return new Value("", Utils.Bool, (Boolean.parseBoolean(left.getValue().toString()) || Boolean.parseBoolean(right.getValue().toString())), false);
+                return new Value("", Utils.Bool, (Boolean.parseBoolean(left.getValue().toString()) || Boolean.parseBoolean(right.getValue().toString())));
             } else if (ctx.check.getText().equals("and")) {
-                return new Value("", Utils.Bool, (Boolean.parseBoolean(left.getValue().toString()) && Boolean.parseBoolean(right.getValue().toString())), false);
+                return new Value("", Utils.Bool, (Boolean.parseBoolean(left.getValue().toString()) && Boolean.parseBoolean(right.getValue().toString())));
             }
             return visitChildren(ctx);
         }
@@ -389,14 +594,33 @@ public class MyVisitor extends gBaseVisitor<Object> {
         Value left = (Value) visit(ctx.expression(0));
         Value right = (Value) visit(ctx.expression(1));
         try {
-            if (!Utils.CheckTypeAll(left, right)) return null;
+            if (!Utils.CheckType(left, right)) return null;
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-        Value value;
         try {
-            return Utils.Compare(ctx.check.getText(), left, right);
+            System.out.println("первое значение: "+ ctx.expression(0).getText());
+            System.out.println("второе значение: "+ ctx.expression(1).getText());
+
+            if(isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText()) ){
+                LLVMGenerator.load_i32(ctx.expression(0).getText(),globalNames);
+                LLVMGenerator.load_i32(ctx.expression(1).getText(),globalNames);
+                LLVMGenerator.icmp2Expr();
+            } else if(isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText()) ) {
+                LLVMGenerator.load_i32(ctx.expression(0).getText(),globalNames);
+                LLVMGenerator.icmp1Expr(ctx.expression(1).getText());
+            }else if(!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText()) ) {
+                LLVMGenerator.load_i32(ctx.expression(1).getText(),globalNames);
+                LLVMGenerator.icmp1Expr(ctx.expression(0).getText());
+            } else if(!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText()) ) {
+                LLVMGenerator.icmp0Expr(ctx.expression(0).getText(), ctx.expression(1).getText());
+            }
+
+
+            Object obj = Utils.Compare(ctx.check.getText(), left, right);
+            System.out.println(obj.toString()+" from visitCond_expr_all");
+            return obj;
         }
         catch (Exception e) {
             e.printStackTrace();

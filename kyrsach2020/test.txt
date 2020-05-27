@@ -1,7 +1,18 @@
-VAR c = 0;
-VAR z = 0;
+VAR c = 55;
+VAR z = 55;
+VAR d = 33;
+
+PROCEDURE square;
 {
-z=6+3;
-c = 3+z+5+(z+2);
-output(c);
+d=d+34;
+output("in function");
+};
+
+{
+output("start main");
+IF (z==54) THEN {
+CALL square;
+output(z);
+}
+output(d);
 }@
