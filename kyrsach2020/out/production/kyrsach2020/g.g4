@@ -5,9 +5,12 @@ go
    ;
 
 block
-   : vars* procedure* statement
+   :  vars* procedure* statement
    ;
 
+consts
+   : 'CONST' ident '=' (number|floatnumber) ';'
+   ;
 
 vars
    : 'VAR' ident '=' (number|floatnumber)';'
@@ -30,7 +33,7 @@ callstmt
    ;
 
 printmess
-   : 'output' '(' (expression |literal) ')' ';'
+   : 'output' '(' (expression | literal) ')' ';'
    ;
 
 beginstmt
@@ -92,7 +95,7 @@ number
    ;
 
 literal
-    : '"'STRINGLITERAL'"'
+    : STRINGLITERAL
     ;
 
 

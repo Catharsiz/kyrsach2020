@@ -1,3 +1,4 @@
+import java.io.FileWriter;
 import java.util.HashSet;
 import java.util.Stack;
 
@@ -10,6 +11,8 @@ class LLVMGenerator {
     private static int str_i = 0;
     private static int main_reg = 1;
     private static int br = 0;
+    static Stack<Integer> br_loop= new Stack<>();
+    static boolean stack_pop;
 
     static Stack<Integer> br_stack = new Stack<>();
 
@@ -30,6 +33,12 @@ class LLVMGenerator {
         text += main_text;
         text += "  ret i32 0\n";
         text += "}\n";
+        try(FileWriter writer = new FileWriter("/home/egor/output.ll", false)) {
+            writer.write(text);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
         System.out.println(text);
         return text;
     }
@@ -184,18 +193,216 @@ class LLVMGenerator {
     }
 
     // if
-    static void icmp2Expr() {
-        buffer += "%" + reg + " = icmp eq i32 %" + (reg - 1) + ", %" + (reg-2) + "\n";
+
+    static void eq2(String type){
+
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp eq i32 %" + (reg - 1) + ", %" + (reg - 2) + "\n";
+
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ueq double %" + (reg - 1) + ", %" + (reg - 2) + "\n";
+        }
+        reg++;
+    }
+    static void eq1(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp eq i32 %" + (reg - 1) + ", " + value + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ueq double %" + (reg - 1) + ", " + value + "\n";
+        }
+        reg++;
+    }
+    static void eq0(String value1, String value2, String type){
+
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp eq i32 " + value1 + ", " + value2 + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ueq double " + value1 + ", " + value2 + "\n";
+        }
         reg++;
     }
 
-    static void icmp1Expr(String value) {
-        buffer += "%" + reg + " = icmp eq i32 %" + (reg - 1) + ", "+ value + "\n";
+    static void noeq2(String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp ne i32 %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp one double %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
+        reg++;
+    }
+    static void noeq1(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp ne i32 %" + (reg - 1) + ", " + value + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp one double %" + (reg - 1) + ", " + value + "\n";
+        }
+        reg++;
+    }
+    static void noeq0(String value1, String value2, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp ne i32 " + value1 + ", " + value2 + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp one double " + value1 + ", " + value2 + "\n";
+        }
+        reg++;
+    }
+    static void more2(String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sgt i32 %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ogt double %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
         reg++;
     }
 
-    static void icmp0Expr(String value1, String value2) {
-        buffer += "%" + reg + " = icmp eq i32 " + value1 + ", "+ value2 + "\n";
+    static void more1_1(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sgt i32 %" + (reg - 1) + ", " + value + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ogt double %" + (reg - 1) + ", " + value + "\n";
+        }
+        reg++;
+    }
+
+    static void more1_2(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sgt i32 " + value + ", %" + (reg-1) + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ogt double " + value + ", %" + (reg-1) + "\n";
+        }
+        reg++;
+    }
+
+
+    static void more0(String value1, String value2, String type) {
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sgt i32 " + value1 + ", " + value2 + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ogt double " + value1 + ", " + value2 + "\n";
+        }
+        reg++;
+    }
+    static void less2(String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp slt i32 %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp olt double %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
+        reg++;
+    }
+    static void less1_1(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp slt i32 %" + (reg - 1) + ", " + value + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp olt double %" + (reg - 1) + ", " + value + "\n";
+        }
+        reg++;
+    }
+
+    static void less1_2(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp slt i32 " + value + ", %" + (reg - 1) + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp olt double " + value + ", %" + (reg-1) + "\n";
+        }
+        reg++;
+    }
+    static void less0(String value1, String value2, String type) {
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp slt i32 " + value1 + ", " + value2 + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp olt double " + value1 + ", " + value2 + "\n";
+        }
+        reg++;
+    }
+    static void moreeq2(String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sge i32 %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp oge double %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
+        reg++;
+    }
+    static void moreeq1_1(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sge i32 %" + (reg - 1) + ", " + value + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp oge double %" + (reg - 1) + ", " + value + "\n";
+        }
+        reg++;
+    }
+
+    static void moreeq1_2(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sge i32 " + value + ", %" + (reg-1) + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp oge double " + value + ", %" + (reg-1) + "\n";
+        }
+        reg++;
+    }
+
+    static void moreeq0(String value1, String value2, String type) {
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sge i32 " + value1 + ", " + value2 + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp oge double " + value1 + ", " + value2 + "\n";
+        }
+        reg++;
+    }
+    static void lesseq2(String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sle i32 %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ole double %" + (reg - 2) + ", %" + (reg - 1) + "\n";
+        }
+        reg++;
+    }
+    static void lesseq1_1(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sle i32 %" + (reg - 1) + ", " + value + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ole double %" + (reg - 1) + ", " + value + "\n";
+        }
+        reg++;
+    }
+
+    static void lesseq1_2(String value, String type){
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sle i32 " + value + ", %" + (reg-1) + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ole double " + value + ", %" + (reg-1) + "\n";
+        }
+        reg++;
+    }
+
+    static void lesseq0(String value1, String value2, String type) {
+        if (type.equals("INTEGER")) {
+            buffer += "%" + reg + " = icmp sle i32 " + value1 + ", " + value2 + "\n";
+        }
+        else if (type.equals("FLOAT")){
+            buffer += "%" + reg + " = fcmp ole double " + value1 + ", " + value2 + "\n";
+        }
         reg++;
     }
 
@@ -211,6 +418,49 @@ class LLVMGenerator {
         buffer += "br label %false" + b + "\n";
         buffer += "false" + b + ":\n";
     }
+
+
+    static void while_start() {
+        stack_pop = false;
+        br++;
+        buffer += "br label %while" + br + "\n";
+        buffer += "while" + br + ":\n";
+        br_loop.push(br);
+    }
+
+    static void while_condition(int ref) {
+        buffer += "br i1 %" + ref + ", label %true" + br + ", label %false" + br + "\n";
+        buffer += "true" + br + ":\n";
+        br_stack.push(br);
+    }
+
+    static void while_condition(String value) {
+        buffer += "br i1 " + value + ", label %true" + br + ", label %false" + br + "\n";
+        buffer += "true" + br + ":\n";
+        br_stack.push(br);
+    }
+
+    static void while_end() {
+        int b = br_stack.pop();
+        buffer += "br label %while" + b + "\n";
+        buffer += "false" + b + ":\n";
+        if (!stack_pop) br_loop.pop();
+    }
+
+    //or, and, !
+    static void or(Integer val1, Integer val2) {
+        buffer += "%" + reg + " = or i1 %" + val1 + ", %" + val2 + "\n";
+        reg++;
+    }
+
+
+
+    static void and(Integer val1, Integer val2) {
+        buffer += "%" + reg + " = and i1 %" + val1 + ", %" + val2 + "\n";
+        reg++;
+    }
+
+
 
 
 

@@ -1,18 +1,17 @@
 VAR c = 55;
 VAR z = 55;
-VAR d = 33;
+VAR i = 0;
+VAR x = 5;
 
-PROCEDURE square;
-{
-d=d+34;
-output("in function");
-};
+
+
 
 {
-output("start main");
-IF (z==54) THEN {
-CALL square;
-output(z);
+output("in main");
+IF (i>5) or (5>x) THEN{
+i=i+1;
+output(i);
 }
-output(d);
+output("end main");
+
 }@

@@ -12,7 +12,7 @@ public class MyVisitor extends gBaseVisitor<Object> {
     HashMap<String, Value> tableforprint = new HashMap<>();
     HashMap<String, gParser.BlockContext> function = new HashMap<>();
     private HashSet<String> globalNames = new HashSet<>();
-    boolean isGenerate = false;
+    boolean isWhile = false;
 
     private Value getVariable(String varName) throws Exception {
         if (tableforprint.containsKey(varName))
@@ -93,10 +93,7 @@ public class MyVisitor extends gBaseVisitor<Object> {
         } else
             tableforprint.clear();
 
-        if(!isGenerate){
-         //   LLVMGenerator.generate();
-            isGenerate=true;
-        }
+
         return null;
     }
 
@@ -196,7 +193,6 @@ public class MyVisitor extends gBaseVisitor<Object> {
         } else if (ctx.children.contains(ctx.literal()))
         {
             name = Utils.removeChatAt(ctx.literal().getText());
-            System.out.println("output Строковой литерал: " + name);
             LLVMGenerator.printlit(name);
         }
         return visitChildren(ctx);
@@ -213,22 +209,26 @@ public class MyVisitor extends gBaseVisitor<Object> {
      */
     @Override public Object visitIfstmt(gParser.IfstmtContext ctx) {
         Value value = (Value) visit(ctx.condlast());
-        System.out.println(value.getValue()+ " from visitIfstmt");
+
+
 
         LLVMGenerator.if_start();
-        if (Boolean.parseBoolean(value.getValue().toString())){
+      //  if (Boolean.parseBoolean(value.getValue().toString())){
             visit(ctx.beginstmt());
-        }
+       // }
         LLVMGenerator.if_end();
         return null;
     }
 
     @Override public Object visitWhilestmt(gParser.WhilestmtContext ctx) {
+        LLVMGenerator.while_start();
         Value value = (Value) visit(ctx.condlast());
-        while (Boolean.parseBoolean(value.getValue().toString())){
+        LLVMGenerator.while_condition(LLVMGenerator.reg-1);
+
             visit(ctx.beginstmt());
             value = (Value) visit(ctx.condlast());
-        }
+
+        LLVMGenerator.while_end();
         return null;
     }
 
@@ -247,10 +247,13 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
 
     private static boolean isExpr(String s)  {
-            if (s.matches("[a-zA-Z]"))
+
+            if (s.matches(".*[a-zA-Z ].*") ) {
                 return true;
-            else
-            return false;
+            }
+            else {
+                return false;
+            }
     }
 
     @Override public Object visitExpr_op(gParser.Expr_opContext ctx) {
@@ -578,9 +581,25 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
             Value right = (Value) visit(ctx.condition(1));
 
+
             if (ctx.check.getText().equals("or")) {
+                if(!isExpr(ctx.condition(1).getChild(1).getText()) && !isExpr(ctx.condition(1).getChild(3).getText()) ){
+                    LLVMGenerator.or(LLVMGenerator.reg-1,LLVMGenerator.reg-2);
+                } else if(isExpr(ctx.condition(1).getChild(1).getText()) && isExpr(ctx.condition(1).getChild(3).getText()) ){
+                    LLVMGenerator.or(LLVMGenerator.reg-1,LLVMGenerator.reg-4);
+                } else if(!isExpr(ctx.condition(1).getChild(1).getText()) || !isExpr(ctx.condition(1).getChild(3).getText()) ){
+                    LLVMGenerator.or(LLVMGenerator.reg-1,LLVMGenerator.reg-3);
+                }
                 return new Value("", Utils.Bool, (Boolean.parseBoolean(left.getValue().toString()) || Boolean.parseBoolean(right.getValue().toString())));
             } else if (ctx.check.getText().equals("and")) {
+                if(!isExpr(ctx.condition(1).getChild(1).getText()) && !isExpr(ctx.condition(1).getChild(3).getText()) ){
+                    LLVMGenerator.and(LLVMGenerator.reg-1,LLVMGenerator.reg-2);
+                } else if(isExpr(ctx.condition(1).getChild(1).getText()) && isExpr(ctx.condition(1).getChild(3).getText()) ){
+                    LLVMGenerator.and(LLVMGenerator.reg-1,LLVMGenerator.reg-4);
+                } else if(!isExpr(ctx.condition(1).getChild(1).getText()) || !isExpr(ctx.condition(1).getChild(3).getText()) ){
+                    LLVMGenerator.and(LLVMGenerator.reg-1,LLVMGenerator.reg-3);
+                }
+
                 return new Value("", Utils.Bool, (Boolean.parseBoolean(left.getValue().toString()) && Boolean.parseBoolean(right.getValue().toString())));
             }
             return visitChildren(ctx);
@@ -595,31 +614,199 @@ public class MyVisitor extends gBaseVisitor<Object> {
         Value right = (Value) visit(ctx.expression(1));
         try {
             if (!Utils.CheckType(left, right)) return null;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         try {
-            System.out.println("первое значение: "+ ctx.expression(0).getText());
-            System.out.println("второе значение: "+ ctx.expression(1).getText());
+            if (ctx.check.getText().equals("==")) {
+                if (left.getType().equals("INTEGER")) {
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.eq2("INTEGER");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.eq1(ctx.expression(1).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.eq1(ctx.expression(1).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        System.out.println(ctx.expression(0).getText());
+                        System.out.println(ctx.expression(1).getText());
+                        LLVMGenerator.eq0(ctx.expression(0).getText(), ctx.expression(1).getText(), "INTEGER");
+                    }
+                } else {   //"FLOAT"
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.eq2("FLOAT");
 
-            if(isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText()) ){
-                LLVMGenerator.load_i32(ctx.expression(0).getText(),globalNames);
-                LLVMGenerator.load_i32(ctx.expression(1).getText(),globalNames);
-                LLVMGenerator.icmp2Expr();
-            } else if(isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText()) ) {
-                LLVMGenerator.load_i32(ctx.expression(0).getText(),globalNames);
-                LLVMGenerator.icmp1Expr(ctx.expression(1).getText());
-            }else if(!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText()) ) {
-                LLVMGenerator.load_i32(ctx.expression(1).getText(),globalNames);
-                LLVMGenerator.icmp1Expr(ctx.expression(0).getText());
-            } else if(!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText()) ) {
-                LLVMGenerator.icmp0Expr(ctx.expression(0).getText(), ctx.expression(1).getText());
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.eq1(ctx.expression(1).getText(), "FLOAT");
+
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.eq1(ctx.expression(0).getText(), "FLOAT");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.eq0(ctx.expression(0).getText(), ctx.expression(1).getText(), "FLOAT");
+                    }
+                }
+            } else if (ctx.check.getText().equals(">")) {
+                if (left.getType().equals("INTEGER") && right.getType().equals(("INTEGER"))) {
+
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.more2("INTEGER");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.more1_1(ctx.expression(1).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.more1_2(ctx.expression(0).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.more0(ctx.expression(0).getText(), ctx.expression(1).getText(), "INTEGER");
+                    }
+                } else {
+                    if (left.getType().equals("FLOAT") && right.getType().equals(("FLOAT")))
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.more2("FLOAT");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.more1_1(ctx.expression(1).getText(), "FLOAT");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.more1_2(ctx.expression(0).getText(), "FLOAT");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.more0(ctx.expression(0).getText(), ctx.expression(1).getText(), "FLOAT");
+                    }
+                }
+            } else if (ctx.check.getText().equals("<")) {
+                if (left.getType().equals("INTEGER") && right.getType().equals(("INTEGER"))) {
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.less2("INTEGER");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.less1_1(ctx.expression(1).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.less1_2(ctx.expression(0).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.less0(ctx.expression(0).getText(), ctx.expression(1).getText(), "INTEGER");
+                    }
+                } else if (left.getType().equals("FLOAT") && right.getType().equals(("FLOAT"))) {
+                        if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                            LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                            LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                            LLVMGenerator.less2("FLOAT");
+                        } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                            LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                            LLVMGenerator.less1_1(ctx.expression(1).getText(), "FLOAT");
+                        } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                            LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                            LLVMGenerator.less1_2(ctx.expression(0).getText(), "FLOAT");
+                        } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                            LLVMGenerator.less0(ctx.expression(0).getText(), ctx.expression(1).getText(), "FLOAT");
+                        }
+                    }
+                } else if (ctx.check.getText().equals(">=")) {
+                if (left.getType().equals("INTEGER") && right.getType().equals(("INTEGER"))) {
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.moreeq2("INTEGER");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.moreeq1_1(ctx.expression(1).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.moreeq1_2(ctx.expression(0).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.moreeq0(ctx.expression(0).getText(), ctx.expression(1).getText(), "INTEGER");
+                    }
+                } else if (left.getType().equals("FLOAT") && right.getType().equals(("FLOAT"))) {
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.moreeq2("FLOAT");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.moreeq1_1(ctx.expression(1).getText(), "FLOAT");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.moreeq1_2(ctx.expression(0).getText(), "FLOAT");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.moreeq0(ctx.expression(0).getText(), ctx.expression(1).getText(), "FLOAT");
+                    }
+                }
+            } else if (ctx.check.getText().equals("<=")) {
+                if (left.getType().equals("INTEGER") && right.getType().equals(("INTEGER"))) {
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.lesseq2("INTEGER");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.lesseq1_1(ctx.expression(1).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.lesseq1_2(ctx.expression(0).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.lesseq0(ctx.expression(0).getText(), ctx.expression(1).getText(), "INTEGER");
+                    }
+                } else if (left.getType().equals("FLOAT") && right.getType().equals(("FLOAT"))) {
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.lesseq2("FLOAT");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.lesseq1_1(ctx.expression(1).getText(), "FLOAT");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.lesseq1_2(ctx.expression(0).getText(), "FLOAT");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.lesseq0(ctx.expression(0).getText(), ctx.expression(1).getText(), "FLOAT");
+                    }
+
+                }
+            }  else if (ctx.check.getText().equals("!=")) {
+                if (left.getType().equals("INTEGER") && right.getType().equals(("INTEGER"))) {
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.noeq2("INTEGER");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.noeq1(ctx.expression(1).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.noeq1(ctx.expression(0).getText(), "INTEGER");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.noeq0(ctx.expression(0).getText(), ctx.expression(1).getText(), "INTEGER");
+                    }
+                } else if (left.getType().equals("FLOAT") && right.getType().equals(("FLOAT"))) {
+                    if (isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.noeq2("FLOAT");
+                    } else if (isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(0).getText(), globalNames);
+                        LLVMGenerator.noeq1(ctx.expression(1).getText(), "FLOAT");
+                    } else if (!isExpr(ctx.expression(0).getText()) && isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.load_double(ctx.expression(1).getText(), globalNames);
+                        LLVMGenerator.noeq1(ctx.expression(0).getText(), "FLOAT");
+                    } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
+                        LLVMGenerator.noeq0(ctx.expression(0).getText(), ctx.expression(1).getText(), "FLOAT");
+                    }
+                }
             }
-
-
             Object obj = Utils.Compare(ctx.check.getText(), left, right);
-            System.out.println(obj.toString()+" from visitCond_expr_all");
             return obj;
         }
         catch (Exception e) {
