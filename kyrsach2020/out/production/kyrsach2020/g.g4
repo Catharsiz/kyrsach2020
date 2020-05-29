@@ -29,7 +29,7 @@ assignstmt
    ;
 
 callstmt
-   : 'CALL' ident
+   : 'CALL' ident ';'
    ;
 
 printmess
@@ -58,11 +58,11 @@ condition
     ;
 
 breakstmt
-    : 'BREAK'
+    : 'BREAK'';'
     ;
 
 continuestmt
-    : 'CONTINUE'
+    : 'CONTINUE'';'
     ;
 
 expression

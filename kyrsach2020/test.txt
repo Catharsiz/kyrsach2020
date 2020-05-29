@@ -1,17 +1,41 @@
-VAR c = 55;
-VAR z = 55;
+VAR c = 55.2;
+VAR z = 50.0;
 VAR i = 0;
-VAR x = 5;
 
+PROCEDURE func;
+{
+output("in procedure");
 
+WHILE (c<=250.0) and (z>10.0) DO {
+c = c + z;
+output("c=");
+output(c);
+    IF ( z == 44.0) or ( c>=150.0) THEN{
+        output("in break");
+        BREAK;
+    }
 
+z = z / 1.5;
+output("z=");
+output(z);
+}
+
+output("enf procedure");
+};
 
 {
 output("in main");
-IF (i>5) or (5>x) THEN{
+WHILE (i<5) DO {
 i=i+1;
+
+    IF (i==3) THEN {
+    output("in continue");
+    CONTINUE;
+    }
+
 output(i);
 }
-output("end main");
 
+CALL func;
+output("end main");
 }@

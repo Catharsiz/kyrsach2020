@@ -1,7 +1,3 @@
-import org.antlr.v4.runtime.tree.*;
-import org.w3c.dom.ls.LSOutput;
-
-import java.sql.SQLOutput;
 import java.util.*;
 
 
@@ -9,14 +5,13 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
 
     Stack <HashMap <String, Value>> Stack_var = new Stack<>();;
-    HashMap<String, Value> tableforprint = new HashMap<>();
+    HashMap<String, Value> variables = new HashMap<>();
     HashMap<String, gParser.BlockContext> function = new HashMap<>();
     private HashSet<String> globalNames = new HashSet<>();
-    boolean isWhile = false;
 
     private Value getVariable(String varName) throws Exception {
-        if (tableforprint.containsKey(varName))
-            return tableforprint.get(varName);
+        if (variables.containsKey(varName))
+            return variables.get(varName);
         for (HashMap<String, Value> hm : Stack_var) {
             if (hm.containsKey(varName)) {
                 return hm.get(varName);
@@ -28,9 +23,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
     private void setVariable(String variableName, Value value) throws Exception {
         value.setIdent(variableName);
-        if (tableforprint.containsKey(variableName)) {
+        if (variables.containsKey(variableName)) {
 
-                tableforprint.replace(variableName, value);
+            variables.replace(variableName, value);
 
                 Value val = getVariable(variableName);
 
@@ -56,7 +51,6 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
     private void callProcedure(String ident) throws Exception{
         if (function.containsKey(ident)) {
-          //  visit(function.get(ident));
             LLVMGenerator.call(ident);
 
         }
@@ -64,38 +58,32 @@ public class MyVisitor extends gBaseVisitor<Object> {
     }
 
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+
     @Override public Object visitGo(gParser.GoContext ctx) {
         visitChildren(ctx);
         LLVMGenerator.generate();
         return null;
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+
+
     @Override public Object visitBlock(gParser.BlockContext ctx) {
         boolean stack = false;
-        if (!tableforprint.isEmpty()) {
-            Stack_var.push(tableforprint);
+        if (!variables.isEmpty()) {
+            Stack_var.push(variables);
             stack = true;
         }
         visitChildren(ctx);
         if (stack){
-            tableforprint = Stack_var.pop();
+            variables = Stack_var.pop();
         } else
-            tableforprint.clear();
+            variables.clear();
 
 
         return null;
     }
+
 
 
     @Override public Object visitVars(gParser.VarsContext ctx) {
@@ -109,9 +97,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
             Object num = ctx.number().getText();
             type = "INTEGER";
             value = new Value(name, type, num);
-            tableforprint.put(name,value);
+            variables.put(name,value);
 
-            System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue());
+
             globalNames.add(value.getIdent());
             LLVMGenerator.declare_i32(value.getIdent(),true);
             LLVMGenerator.assign_i32(value.getIdent(), value.getValue().toString(), globalNames);
@@ -120,9 +108,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
             Object floatnum = ctx.floatnumber().getText();
             type = "FLOAT";
             value = new Value(name, type, floatnum);
-            tableforprint.put(name,value);
+            variables.put(name,value);
 
-            System.out.println( "Переменная: " + value.getIdent() + " ,  тип переменной: "+ value.getType() + " , Значение: " + value.getValue());
+
             globalNames.add(value.getIdent());
             LLVMGenerator.declare_double(value.getIdent(),true);
             LLVMGenerator.assign_double(value.getIdent(), value.getValue().toString(), globalNames);
@@ -143,12 +131,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
     }
 
     @Override public Object visitStatement(gParser.StatementContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+
+
     @Override public Object visitAssignstmt(gParser.AssignstmtContext ctx) {
         String variableName = ctx.ident().getText();
         Value value = (Value) visit(ctx.expression());
@@ -179,7 +164,6 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
         if(ctx.children.contains(ctx.expression())){
             name = ctx.expression().getText();
-            System.out.println("output переменной " + tableforprint.get(name));
             try {
                 Value val = getVariable(name);
 
@@ -201,21 +185,16 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
 
     @Override public Object visitBeginstmt(gParser.BeginstmtContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+
+
     @Override public Object visitIfstmt(gParser.IfstmtContext ctx) {
         Value value = (Value) visit(ctx.condlast());
 
 
 
         LLVMGenerator.if_start();
-      //  if (Boolean.parseBoolean(value.getValue().toString())){
             visit(ctx.beginstmt());
-       // }
         LLVMGenerator.if_end();
         return null;
     }
@@ -234,14 +213,16 @@ public class MyVisitor extends gBaseVisitor<Object> {
 
 
 
-    @Override public Object visitBreakstmt(gParser.BreakstmtContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Object visitContinuestmt(gParser.ContinuestmtContext ctx) { return visitChildren(ctx); }
+
+    @Override public Object visitBreakstmt(gParser.BreakstmtContext ctx) {
+        LLVMGenerator.Break();
+        return null;
+    }
+
+    @Override public Object visitContinuestmt(gParser.ContinuestmtContext ctx) {
+        LLVMGenerator.Continue();
+        return null;
+    }
 
     @Override public Object visitIdent(gParser.IdentContext ctx) { return visitChildren(ctx); }
 
@@ -389,12 +370,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
     @Override public Object visitTerm_expr(gParser.Term_exprContext ctx) {
         return (Value) visit(ctx.term());
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+
+
     @Override public Object visitTerm_op(gParser.Term_opContext ctx) {
         Value left = (Value) visit(ctx.term());
         Value right = (Value) visit(ctx.factor());
@@ -520,21 +498,15 @@ public class MyVisitor extends gBaseVisitor<Object> {
         }
         return null;
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+
+
     @Override public Object visitFactor_term(gParser.Factor_termContext ctx) {
         return (Value) visit(ctx.factor());
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+
+
     @Override public Object visitIdent_factor(gParser.Ident_factorContext ctx) {
         try {
             return getVariable(ctx.ident().getText());
@@ -544,12 +516,9 @@ public class MyVisitor extends gBaseVisitor<Object> {
         }
         return null;
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+
+
     @Override public Object visitInteger_factor(gParser.Integer_factorContext ctx) {
         return new Value ("", "INTEGER", Integer.parseInt(ctx.number().getText()));
     }
@@ -631,8 +600,6 @@ public class MyVisitor extends gBaseVisitor<Object> {
                         LLVMGenerator.load_i32(ctx.expression(1).getText(), globalNames);
                         LLVMGenerator.eq1(ctx.expression(1).getText(), "INTEGER");
                     } else if (!isExpr(ctx.expression(0).getText()) && !isExpr(ctx.expression(1).getText())) {
-                        System.out.println(ctx.expression(0).getText());
-                        System.out.println(ctx.expression(1).getText());
                         LLVMGenerator.eq0(ctx.expression(0).getText(), ctx.expression(1).getText(), "INTEGER");
                     }
                 } else {   //"FLOAT"

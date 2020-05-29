@@ -434,11 +434,6 @@ class LLVMGenerator {
         br_stack.push(br);
     }
 
-    static void while_condition(String value) {
-        buffer += "br i1 " + value + ", label %true" + br + ", label %false" + br + "\n";
-        buffer += "true" + br + ":\n";
-        br_stack.push(br);
-    }
 
     static void while_end() {
         int b = br_stack.pop();
@@ -460,6 +455,21 @@ class LLVMGenerator {
         reg++;
     }
 
+
+    static void Continue() {
+        int b = br_loop.pop();
+        buffer += "br label %while" + b + "\n";
+        br_loop.push(b);
+        reg++;
+    }
+
+
+    static void Break() {
+        int b = br_loop.pop();
+        reg++;
+        stack_pop = true;
+        buffer += "br label %false" + b + "\n";
+    }
 
 
 
