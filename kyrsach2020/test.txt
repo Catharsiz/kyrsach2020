@@ -12,6 +12,10 @@ output("c=");
 output(c);
     IF ( z == 44.0) or ( c>=150.0) THEN{
         output("in break");
+        /*
+        Многострочный
+        комментарий
+        */
         BREAK;
     }
 
@@ -25,7 +29,7 @@ output("enf procedure");
 
 {
 output("in main");
-WHILE (i<5) DO {
+WHILE (i<5) DO {  //Одиночный комментарий
 i=i+1;
 
     IF (i==3) THEN {
